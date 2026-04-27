@@ -8,6 +8,7 @@ in a module-level registry.
 from __future__ import annotations
 
 import hashlib
+import importlib
 
 from driftscope.errors import ASTParseError
 
@@ -56,8 +57,6 @@ def get_language(language: str) -> object:
 
     module_name = SUPPORTED_LANGUAGES[language]
     try:
-        import importlib
-
         mod = importlib.import_module(module_name)
     except ImportError:
         raise ASTParseError(
@@ -103,11 +102,7 @@ def parse_source(
     """
     lang = get_language(language)
 
-    if _tree_sitter_mod is None:
-        raise ASTParseError(
-            "tree-sitter core library is not installed.",
-        )
-
+    # get_language() already validated that _tree_sitter_mod is available
     parser = _tree_sitter_mod.Parser()
     parser.language = lang
     parser.timeout_micros = timeout

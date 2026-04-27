@@ -15,8 +15,8 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from datetime import date
-from pathlib import Path
 
+from driftscope.metrics._helpers import module_of
 from driftscope.models.ast_diff import ASTDiffSet, ASTFileDiff
 from driftscope.models.metrics import ComplexityMetrics, WeeklyComplexity
 
@@ -128,7 +128,7 @@ def compute_complexity_metrics(
     # Group diffs by module
     module_diffs: dict[str, list[ASTFileDiff]] = defaultdict(list)
     for diff in diff_set.diffs:
-        module = _module_of(diff.file_path)
+        module = module_of(diff.file_path)
         module_diffs[module].append(diff)
 
     result: dict[str, ComplexityMetrics] = {}
@@ -186,20 +186,6 @@ def compute_complexity_metrics(
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
-
-def _module_of(path: Path) -> str:
-    """Return the top-level directory component of *path*.
-
-    Files at the repository root return the empty string.
-
-    Args:
-        path: File path relative to repository root.
-
-    Returns:
-        Top-level directory name, or "" for root-level files.
-    """
-    parts = path.parts
-    return parts[0] if len(parts) > 1 else ""
 
 
 def _build_weekly_series(

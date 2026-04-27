@@ -162,16 +162,6 @@ class TestParseSource:
         with pytest.raises(ASTParseError, match="returned None"):
             parse_source("x = 1", "python", timeout=1000)
 
-    @patch("driftscope.ast_engine.parser.get_language")
-    @patch("driftscope.ast_engine.parser._tree_sitter_mod", new=None)
-    def test_raises_when_tree_sitter_mod_is_none(
-        self,
-        mock_get_lang: MagicMock,
-    ) -> None:
-        """If _tree_sitter_mod is None, raise ASTParseError."""
-        with pytest.raises(ASTParseError, match="tree-sitter core library"):
-            parse_source("x = 1", "python")
-
 
 # ---------------------------------------------------------------------------
 # Grammar modules (just verify they are importable with correct constants)

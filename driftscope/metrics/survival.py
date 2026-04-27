@@ -10,9 +10,9 @@ Time Complexity:
 from __future__ import annotations
 
 from collections import defaultdict
-from pathlib import Path
 
 from driftscope.errors import MetricError
+from driftscope.metrics._helpers import module_of
 from driftscope.models.ast_diff import ASTDiffSet
 from driftscope.models.blame import BlameLine
 from driftscope.models.metrics import SurvivalMetrics
@@ -57,8 +57,7 @@ def compute_survival_metrics(
     # Build commit_sha -> set of modules mapping from diffs
     sha_modules: dict[str, set[str]] = defaultdict(set)
     for diff in diff_set.diffs:
-        module = _module_of(diff.file_path)
-        sha_modules[diff.commit_sha].add(module)
+        sha_modules[diff.commit_sha].add(module_of(diff.file_path))
 
     # Group blame lines by module using sha_modules mapping.
     # A blame line belongs to a module if its commit SHA was used in a diff
@@ -145,25 +144,10 @@ def _count_introduced_by_module(
     """
     result: dict[str, dict[str, int]] = defaultdict(lambda: {"ai": 0, "human": 0})
     for diff in diff_set.diffs:
-        module = _module_of(diff.file_path)
+        mod = module_of(diff.file_path)
         added_count = sum(1 for ch in diff.changes if ch.change_type == "added")
         if diff.authorship_class == "ai":
-            result[module]["ai"] += added_count
+            result[mod]["ai"] += added_count
         else:
-            result[module]["human"] += added_count
+            result[mod]["human"] += added_count
     return dict(result)
-
-
-def _module_of(path: Path) -> str:
-    """Return the top-level directory component of *path*.
-
-    Files at the repository root return the empty string.
-
-    Args:
-        path: File path relative to repository root.
-
-    Returns:
-        Top-level directory name, or "" for root-level files.
-    """
-    parts = path.parts
-    return parts[0] if len(parts) > 1 else ""

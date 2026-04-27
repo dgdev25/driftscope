@@ -1,5 +1,7 @@
 """Pydantic config model for .driftscope.yaml."""
 
+import re
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -10,8 +12,6 @@ class AuthorshipConfig(BaseModel):
     @field_validator("custom_patterns")
     @classmethod
     def validate_custom_patterns(cls, v: list[str]) -> list[str]:
-        import re
-
         for pattern in v:
             try:
                 re.compile(pattern)
@@ -53,8 +53,6 @@ class MetricsConfig(BaseModel):
     @field_validator("survival_windows")
     @classmethod
     def validate_survival_windows(cls, v: list[str]) -> list[str]:
-        import re
-
         for w in v:
             if not re.match(r"^\d+d$", w):
                 raise ValueError(

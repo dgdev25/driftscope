@@ -10,8 +10,8 @@ Time Complexity:
 from __future__ import annotations
 
 from collections import defaultdict
-from pathlib import Path
 
+from driftscope.metrics._helpers import module_of
 from driftscope.models.ast_diff import ASTDiffSet
 from driftscope.models.metrics import ChurnMetrics
 
@@ -45,7 +45,7 @@ def compute_churn_metrics(diff_set: ASTDiffSet) -> dict[str, ChurnMetrics]:
     )
 
     for diff in diff_set.diffs:
-        module = _module_of(diff.file_path)
+        module = module_of(diff.file_path)
         bucket = module_data[module]
 
         for change in diff.changes:
@@ -72,22 +72,3 @@ def compute_churn_metrics(diff_set: ASTDiffSet) -> dict[str, ChurnMetrics]:
         )
 
     return result
-
-
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
-
-def _module_of(path: Path) -> str:
-    """Return the top-level directory component of *path*.
-
-    Files at the repository root return the empty string.
-
-    Args:
-        path: File path relative to repository root.
-
-    Returns:
-        Top-level directory name, or "" for root-level files.
-    """
-    parts = path.parts
-    return parts[0] if len(parts) > 1 else ""

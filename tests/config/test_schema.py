@@ -58,6 +58,11 @@ def test_metrics_invalid_window_format() -> None:
         MetricsConfig(survival_windows=["3months"])
 
 
+def test_metrics_valid_complexity_metrics() -> None:
+    config = MetricsConfig(complexity_metrics=["cyclomatic", "cognitive"])
+    assert config.complexity_metrics == ["cyclomatic", "cognitive"]
+
+
 def test_metrics_unsupported_complexity_metric() -> None:
     with pytest.raises(ValidationError, match="Unsupported complexity metrics"):
         MetricsConfig(complexity_metrics=["cyclomatic", "halstead"])

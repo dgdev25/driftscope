@@ -83,6 +83,38 @@ class TestParsePorcelain:
         assert len(result) == 1
         assert result[0].content == "code here"
 
+    def test_same_commit_carry_over(self) -> None:
+        """Consecutive lines from the same commit use 3-field header with carry-over."""
+        output = (
+            "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0 1 1 2\n"
+            "author Alice\n"
+            "author-mail <alice@test.com>\n"
+            "\tline one\n"
+            "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0 2 2\n"
+            "\tline two\n"
+        )
+        result = _parse_porcelain(output)
+        assert len(result) == 2
+        assert result[0].author_name == "Alice"
+        assert result[0].content == "line one"
+        assert result[1].author_name == "Alice"
+        assert result[1].content == "line two"
+
+    def test_different_commit_short_header(self) -> None:
+        """3-field header for a different commit without author info fails gracefully."""
+        output = (
+            "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0 1 1 1\n"
+            "author Alice\n"
+            "author-mail <alice@test.com>\n"
+            "\tline one\n"
+            "f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0 2 2\n"
+            "\tline two\n"
+        )
+        # Different commit with no author headers — should assert/raise
+        # because author_name and author_email are None
+        with pytest.raises(AssertionError):
+            _parse_porcelain(output)
+
 
 class TestRunBlame:
     """Tests for run_blame with mocked subprocess."""
