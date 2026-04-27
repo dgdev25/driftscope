@@ -14,3 +14,4 @@ htmlcov/
 *.db
 .venv/
 .worktrees/
+.claude/memory/
