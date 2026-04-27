@@ -13,9 +13,9 @@ DriftScope answers questions like:
 
 It works by parsing git history, matching co-authorship tags in commit messages, performing AST-level diffing via tree-sitter, and computing module-level metrics.
 
-## Quick Start
+## Installation
 
-### Install
+### From PyPI (when published)
 
 ```bash
 pip install driftscope
@@ -27,44 +27,66 @@ Or with [uv](https://docs.astral.sh/uv/):
 uv tool install driftscope
 ```
 
-### Initialize
+### From Source
+
+```bash
+git clone https://github.com/dgdev25/driftscope.git
+cd driftscope
+
+# Install as a global CLI tool (recommended)
+uv tool install .
+
+# Or install in editable mode for development
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+```
+
+### Verify
+
+```bash
+driftscope version
+# 0.1.0
+```
+
+> **Requirements:** Python >= 3.11, Git >= 2.30
+
+## Usage
+
+### 1. Initialize (creates config file)
 
 ```bash
 cd your-repo
 driftscope init
+# Created /path/to/your-repo/.driftscope.yaml
 ```
 
-This creates a `.driftscope.yaml` config file with sensible defaults.
+This creates a `.driftscope.yaml` in your repo with defaults. It tells DriftScope which AI patterns to look for, what languages to parse, and what metrics to compute. You can commit this file — it's repo-specific config.
 
-### Analyze
+### 2. Run analysis
 
 ```bash
-# JSON to stdout
+# Print JSON to terminal
 driftscope analyze --format json --output -
 
-# Markdown report
+# Save as Markdown
 driftscope analyze --format markdown --output report.md
 
-# HTML dashboard
+# Save as HTML
 driftscope analyze --format html --output report.html
 
-# CSV for spreadsheet import
+# Save as CSV
 driftscope analyze --format csv --output metrics.csv
 
-# Analyze a specific time window
-driftscope analyze --since 2024-01-01 --until 2024-06-01 --format json --output -
+# Only analyze commits since a date
+driftscope analyze --since 2024-01-01 --format json --output -
 ```
 
-### Validate Config
+### 3. Other commands
 
 ```bash
-driftscope config validate
-```
-
-### View Report Schema
-
-```bash
-driftscope schema
+driftscope config validate   # Check your .driftscope.yaml for errors
+driftscope schema            # Print the JSON report schema
 ```
 
 ## CLI Reference
@@ -265,104 +287,21 @@ Flat table with one row per module. Headers: `module`, `total_lines`, `ai_lines`
 
 ## Development
 
-### Setup
-
 ```bash
 git clone https://github.com/dgdev25/driftscope.git
 cd driftscope
-python -m venv .venv
-source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-### Run Tests
-
 ```bash
-# Full suite
-pytest
-
-# With coverage
-pytest --cov=driftscope --cov-report=term-missing
-
-# Unit tests only (skip E2E)
-pytest --ignore=tests/e2e
-
-# Single test file
-pytest tests/authorship/test_classifier.py
-
-# Verbose
-pytest -v
+pytest                                    # run all 336 tests
+pytest --cov=driftscope                   # with coverage
+pytest tests/authorship/test_classifier.py # single file
+ruff check .                              # lint
+mypy driftscope                           # type check
+python -m build                           # build sdist + wheel
 ```
-
-### Lint & Type Check
-
-```bash
-ruff check .
-ruff format --check .
-mypy driftscope
-```
-
-### Build
-
-```bash
-pip install build
-python -m build
-```
-
-### Docker
-
-```bash
-docker build -t driftscope .
-docker run -v /path/to/repo:/repo driftscope analyze --repo-path /repo --format json --output -
-```
-
-## Architecture
-
-```
-driftscope/
-├── ast_engine/         # tree-sitter parsing, AST diffing, node survival
-│   ├── parser.py       # Language-aware source parsing
-│   ├── differ.py       # AST-level diff computation
-│   └── survival.py     # Node survival tracking
-├── authorship/         # AI vs human commit classification
-│   ├── patterns.py     # Co-authorship tag pattern matching
-│   └── classifier.py   # Commit history classification
-├── cache/              # SQLite-backed analysis cache (WAL)
-│   └── manager.py
-├── cli/                # Typer CLI interface
-│   ├── app.py          # Command definitions
-│   └── main.py         # Entry point re-export
-├── config/             # Pydantic v2 config schema + YAML loader
-│   ├── schema.py
-│   └── loader.py
-├── git_client/         # Git operations via subprocess
-│   ├── log.py          # git log parsing
-│   ├── blame.py        # git blame parsing
-│   └── diff_parser.py  # Unified diff parsing
-├── integrations/       # External service integrations
-│   └── github_pr.py    # PR comment posting via REST API v3
-├── metrics/            # Metric computation
-│   ├── survival.py     # Line survival rates (30/90/180/365d windows)
-│   ├── complexity.py   # Cyclomatic/cognitive complexity deltas
-│   └── churn.py        # Module-level churn attribution
-├── models/             # Pydantic v2 data models
-│   ├── commit.py       # Commit, AttributedCommit
-│   ├── history.py      # CommitHistory, AttributedHistory
-│   ├── metrics.py      # ModuleMetrics, SurvivalMetrics, etc.
-│   ├── report.py       # MetricsResult (top-level report)
-│   └── ...
-├── reporting/          # Output renderers
-│   ├── json_report.py
-│   ├── markdown.py
-│   ├── html.py
-│   └── csv_export.py
-└── errors.py           # DriftScopeError hierarchy
-```
-
-## Requirements
-
-- Python >= 3.11
-- Git >= 2.30
 
 ## License
 
