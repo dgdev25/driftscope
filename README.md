@@ -15,18 +15,6 @@ It works by parsing git history, matching co-authorship tags in commit messages,
 
 ## Installation
 
-### From PyPI (when published)
-
-```bash
-pip install driftscope
-```
-
-Or with [uv](https://docs.astral.sh/uv/):
-
-```bash
-uv tool install driftscope
-```
-
 ### From Source
 
 ```bash
