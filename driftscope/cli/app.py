@@ -9,7 +9,6 @@ The CLI exits non-zero on failure and never produces silent incomplete output.
 from __future__ import annotations
 
 import json
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated, Optional
